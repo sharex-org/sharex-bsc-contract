@@ -25,6 +25,7 @@ contract ShareXVault is
 {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.UintSet;
     using Strings for uint256;
     
     // ===== Roles =====
@@ -89,7 +90,7 @@ contract ShareXVault is
      */
     struct PartnerInfo {
         uint256 id;             // Internal ID.
-        bytes32 partnerKey;     // Partner hash key (keccak256(partnerCode)).
+        bytes32 partnerCode;    // Partner code.
         string partnerName;     // Partner name.
         bytes2 iso2;           // ISO2 country code.
         bytes32 verification;   // Verification number issued by ShareX.
@@ -104,7 +105,7 @@ contract ShareXVault is
     struct MerchantInfo {
         uint256 id;                      // Internal ID.
         bytes32 merchantName;            // Merchant name.
-        bytes32 merchantKey;             // Merchant hash key (keccak256(merchantId)).
+        bytes32 merchantId;              // Merchant ID.
         bytes description;               // Description.
         bytes2 iso2;                     // Country code.
         bytes32 locationId;              // City code.
@@ -119,10 +120,10 @@ contract ShareXVault is
      */
     struct DeviceInfo {
         uint256 id;             // Internal ID.
-        bytes32 deviceKey;      // Device hash key (keccak256(deviceId)).
+        bytes32 deviceId;       // Device ID.
         bytes32 deviceType;     // Device type.
-        bytes32 partnerKey;     // Partner hash key.
-        bytes32 merchantKey;    // Merchant hash key.
+        bytes32 partnerCode;    // Partner code.
+        bytes32 merchantId;     // Merchant ID.
         uint256 timestamp;      // Registration timestamp.
     }
     
@@ -130,7 +131,7 @@ contract ShareXVault is
      * @dev Basic transaction information structure.
      */
     struct BasicTransactionInfo {
-        bytes32 deviceHash;     // Device hash.
+        bytes32 deviceId;       // Device ID.
         uint32 orderCount;     // Order count.
         uint256 totalAmount;   // Total transaction amount.
         uint256 dateComparable; // Date in YYYYMMDD format, for comparison.
@@ -219,7 +220,7 @@ contract ShareXVault is
      * @dev Parameters structure for uploading a transaction batch.
      */
     struct UploadBatchParams {
-        string deviceHash;
+        string deviceId;
         uint256 dateComparable; // Date in YYYYMMDD format.
         uint32 orderCount;
         uint256 totalAmount;
@@ -233,7 +234,7 @@ contract ShareXVault is
     mapping(bytes32 => PartnerInfo) internal _partners;
     mapping(bytes32 => MerchantInfo) internal _merchants;
     mapping(bytes32 => DeviceInfo) internal _devices;
-    mapping(bytes32 => TransactionBatch) internal _transactionBatches;
+    mapping(bytes32 => mapping(uint256 => TransactionBatch)) internal _transactionBatches;
     
     // Reverse mapping, used to restore original value from hash.
     mapping(bytes32 => bytes2) private _hashToCountryCode;
@@ -243,7 +244,6 @@ contract ShareXVault is
     EnumerableSet.Bytes32Set private _partnerKeys;
     EnumerableSet.Bytes32Set private _merchantKeys;
     EnumerableSet.Bytes32Set private _deviceKeys;
-    EnumerableSet.Bytes32Set private _transactionBatchKeys;
     
     // System state.
     SystemState private _systemState;
@@ -253,7 +253,7 @@ contract ShareXVault is
     mapping(bytes32 => EnumerableSet.Bytes32Set) private _merchantsByPartner;
     mapping(bytes32 => EnumerableSet.Bytes32Set) private _devicesByMerchant;
     mapping(bytes32 => EnumerableSet.Bytes32Set) private _devicesByPartner;
-    mapping(bytes32 => EnumerableSet.Bytes32Set) private _transactionsByDevice;
+    mapping(bytes32 => EnumerableSet.UintSet) private _transactionsByDevice;
     
     // ===== Protected Accessor Functions (for inherited contracts only) =====
     
@@ -299,28 +299,28 @@ contract ShareXVault is
     );
     
     event PartnerRegistered(
-        bytes32 indexed partnerKey, 
+        bytes32 indexed partnerCode, 
         string partnerName, 
         bytes2 iso2,
         uint256 indexed timestamp
     );
     
     event MerchantRegistered(
-        bytes32 indexed merchantKey, 
+        bytes32 indexed merchantId, 
         bytes2 indexed iso2,
         bytes32 indexed locationId,
         uint256 timestamp
     );
     
     event DeviceRegistered(
-        bytes32 indexed deviceKey, 
-        bytes32 indexed partnerKey, 
-        bytes32 indexed merchantKey, 
+        bytes32 indexed deviceId, 
+        bytes32 indexed partnerCode, 
+        bytes32 indexed merchantId, 
         uint256 timestamp
     );
     
     event TransactionBatchUploaded(
-        bytes32 indexed deviceHash, 
+        bytes32 indexed deviceId, 
         uint256 indexed dateComparable, 
         uint32 orderCount,
         uint256 totalAmount,
@@ -328,7 +328,8 @@ contract ShareXVault is
     );
     
     event TransactionDetailUploaded(
-        bytes32 indexed transactionKey,
+        bytes32 indexed deviceId,
+        uint256 indexed dateComparable,
         bytes32 indexed userId,
         bytes32 sharexId,
         bytes32 transactionAmount,
@@ -449,10 +450,10 @@ contract ShareXVault is
      * @dev Generates a key for a transaction batch.
      */
     function _generateTransactionKey(
-        bytes32 deviceKey, 
+        bytes32 deviceId, 
         uint256 dateComparable
     ) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(deviceKey, dateComparable));
+        return keccak256(abi.encodePacked(deviceId, dateComparable));
     }
 
     // ===== Country Management Functions =====
@@ -581,7 +582,7 @@ contract ShareXVault is
         
         _partners[key] = PartnerInfo({
             id: partnerId,
-            partnerKey: key,
+            partnerCode: key,
             partnerName: params.partnerName,
             iso2: iso2Bytes,
             verification: bytes32(bytes(params.verification)),
@@ -651,7 +652,7 @@ contract ShareXVault is
         _merchants[key] = MerchantInfo({
             id: internalMerchantId,
             merchantName: bytes32(bytes(params.merchantName)),
-            merchantKey: key,
+            merchantId: key,
             description: params.description,
             iso2: iso2Bytes,
             locationId: locationIdKey,
@@ -700,37 +701,37 @@ contract ShareXVault is
     }
 
     function _registerDeviceInternal(DeviceParams memory params) private {
-        bytes32 deviceKey = bytes32(bytes(params.deviceId));
-        bytes32 partnerKey = bytes32(bytes(params.partnerCode));
-        bytes32 merchantKey = bytes32(bytes(params.merchantId));
+        bytes32 deviceId = bytes32(bytes(params.deviceId));
+        bytes32 partnerCode = bytes32(bytes(params.partnerCode));
+        bytes32 merchantId = bytes32(bytes(params.merchantId));
         
         // Check if the partner exists and is active.
-        if (!_partnerKeys.contains(partnerKey)) {
-            revert EntityNotFound("partner", partnerKey);
+        if (!_partnerKeys.contains(partnerCode)) {
+            revert EntityNotFound("partner", partnerCode);
         }
         
-        if (_deviceKeys.contains(deviceKey)) {
-            revert EntityAlreadyExists("device", deviceKey);
+        if (_deviceKeys.contains(deviceId)) {
+            revert EntityAlreadyExists("device", deviceId);
         }
         
         _deviceIdCounter++;
         uint256 internalDeviceId = _deviceIdCounter;
         
-        _devices[deviceKey] = DeviceInfo({
+        _devices[deviceId] = DeviceInfo({
             id: internalDeviceId,
-            deviceKey: deviceKey,
+            deviceId: deviceId,
             deviceType: bytes32(bytes(params.deviceType)),
-            partnerKey: partnerKey,
-            merchantKey: merchantKey,
+            partnerCode: partnerCode,
+            merchantId: merchantId,
             timestamp: block.timestamp
         });
         
-        _deviceKeys.add(deviceKey);
-        _merchantsByPartner[partnerKey].add(merchantKey);
-        _devicesByMerchant[merchantKey].add(deviceKey);
-        _devicesByPartner[partnerKey].add(deviceKey);
+        _deviceKeys.add(deviceId);
+        _merchantsByPartner[partnerCode].add(merchantId);
+        _devicesByMerchant[merchantId].add(deviceId);
+        _devicesByPartner[partnerCode].add(deviceId);
         
-        emit DeviceRegistered(deviceKey, partnerKey, merchantKey, block.timestamp);
+        emit DeviceRegistered(deviceId, partnerCode, merchantId, block.timestamp);
     }
     
     /**
@@ -761,11 +762,11 @@ contract ShareXVault is
         onlyRole(READER_ROLE) 
         returns (DeviceInfo memory) 
     {
-        bytes32 deviceKey = bytes32(bytes(deviceId));
-        if (!_deviceKeys.contains(deviceKey)) {
-            revert EntityNotFound("device", deviceKey);
+        bytes32 key = bytes32(bytes(deviceId));
+        if (!_deviceKeys.contains(key)) {
+            revert EntityNotFound("device", key);
         }
-        return _devices[deviceKey];
+        return _devices[key];
     }
     
     /**
@@ -777,8 +778,8 @@ contract ShareXVault is
         onlyRole(READER_ROLE) 
         returns (uint256) 
     {
-        bytes32 partnerKey = bytes32(bytes(partnerCode));
-        return _devicesByPartner[partnerKey].length();
+        bytes32 partnerCodeKey = bytes32(bytes(partnerCode));
+        return _devicesByPartner[partnerCodeKey].length();
     }
     
     /**
@@ -790,8 +791,8 @@ contract ShareXVault is
         onlyRole(READER_ROLE) 
         returns (DeviceInfo[] memory) 
     {
-        bytes32 partnerKey = bytes32(bytes(partnerCode));
-        EnumerableSet.Bytes32Set storage deviceKeys = _devicesByPartner[partnerKey];
+        bytes32 partnerCodeKey = bytes32(bytes(partnerCode));
+        EnumerableSet.Bytes32Set storage deviceKeys = _devicesByPartner[partnerCodeKey];
         uint256 length = deviceKeys.length();
 
         if (offset >= length) {
@@ -817,8 +818,8 @@ contract ShareXVault is
         onlyRole(READER_ROLE) 
         returns (uint256) 
     {
-        bytes32 merchantKey = bytes32(bytes(merchantId));
-        return _devicesByMerchant[merchantKey].length();
+        bytes32 merchantIdKey = bytes32(bytes(merchantId));
+        return _devicesByMerchant[merchantIdKey].length();
     }
     
     /**
@@ -830,8 +831,8 @@ contract ShareXVault is
         onlyRole(READER_ROLE)
         returns (DeviceInfo[] memory)
     {
-        bytes32 merchantKey = bytes32(bytes(merchantId));
-        EnumerableSet.Bytes32Set storage deviceKeys = _devicesByMerchant[merchantKey];
+        bytes32 merchantIdKey = bytes32(bytes(merchantId));
+        EnumerableSet.Bytes32Set storage deviceKeys = _devicesByMerchant[merchantIdKey];
         uint256 length = deviceKeys.length();
 
         if (offset >= length) {
@@ -897,21 +898,21 @@ contract ShareXVault is
             revert OrderCountMismatch();
         }
         
-        bytes32 deviceKey = bytes32(bytes(params.deviceHash));
-        bytes32 key = _generateTransactionKey(deviceKey, params.dateComparable);
+        bytes32 deviceId = bytes32(bytes(params.deviceId));
+        uint256 date = params.dateComparable;
         
-        if (_transactionBatchKeys.contains(key)) {
-            revert EntityAlreadyExists("transaction_batch", key);
+        if (_transactionBatches[deviceId][date].id != 0) {
+            revert EntityAlreadyExists("transaction_batch", deviceId);
         }
         
         _transactionBatchIdCounter++;
         uint256 batchId = _transactionBatchIdCounter;
         
         // Store basic information.
-        _transactionBatches[key] = TransactionBatch({
+        _transactionBatches[deviceId][date] = TransactionBatch({
             id: batchId,
             basicInfo: BasicTransactionInfo({
-                deviceHash: deviceKey,
+                deviceId: deviceId,
                 orderCount: params.orderCount,
                 totalAmount: params.totalAmount,
                 dateComparable: params.dateComparable
@@ -923,7 +924,8 @@ contract ShareXVault is
         for (uint256 i = 0; i < params.transactionDetails.length; i++) {
             TransactionDetail memory detail = params.transactionDetails[i];
             emit TransactionDetailUploaded(
-                key,
+                deviceId,
+                date,
                 detail.userId,
                 detail.sharexId,
                 detail.transactionAmount,
@@ -933,11 +935,10 @@ contract ShareXVault is
             );
         }
         
-        _transactionBatchKeys.add(key);
-        _transactionsByDevice[deviceKey].add(key);
+        _transactionsByDevice[deviceId].add(date);
         
         emit TransactionBatchUploaded(
-            deviceKey, 
+            deviceId, 
             params.dateComparable, 
             params.orderCount,
             params.totalAmount,
@@ -949,7 +950,7 @@ contract ShareXVault is
      * @dev Gets basic information of a transaction batch.
      */
     function getTransactionBatchBasicInfo(
-        string calldata deviceHash, 
+        string calldata deviceId, 
         uint256 dateComparable
     ) 
         external 
@@ -957,28 +958,28 @@ contract ShareXVault is
         onlyRole(READER_ROLE) 
         returns (BasicTransactionInfo memory) 
     {
-        bytes32 deviceKey = bytes32(bytes(deviceHash));
-        bytes32 key = _generateTransactionKey(deviceKey, dateComparable);
+        bytes32 deviceIdKey = bytes32(bytes(deviceId));
+        TransactionBatch storage batch = _transactionBatches[deviceIdKey][dateComparable];
         
-        if (!_transactionBatchKeys.contains(key)) {
-            revert EntityNotFound("transaction_batch", key);
+        if (batch.id == 0) {
+            revert EntityNotFound("transaction_batch", deviceIdKey);
         }
         
-        return _transactionBatches[key].basicInfo;
+        return batch.basicInfo;
     }
     
     /**
      * @dev Gets all transaction batches for a device (with pagination).
      */
-    function getTransactionBatchesByDevice(string calldata deviceHash, uint256 offset, uint256 limit)
+    function getTransactionBatchesByDevice(string calldata deviceId, uint256 offset, uint256 limit)
         external
         view
         onlyRole(READER_ROLE)
         returns (TransactionBatch[] memory)
     {
-        bytes32 deviceKey = bytes32(bytes(deviceHash));
-        EnumerableSet.Bytes32Set storage batchKeys = _transactionsByDevice[deviceKey];
-        uint256 length = batchKeys.length();
+        bytes32 deviceIdKey = bytes32(bytes(deviceId));
+        EnumerableSet.UintSet storage batchDates = _transactionsByDevice[deviceIdKey];
+        uint256 length = batchDates.length();
 
         if (offset >= length) {
             return new TransactionBatch[](0);
@@ -987,8 +988,8 @@ contract ShareXVault is
         uint256 count = (offset + limit > length) ? (length - offset) : limit;
         TransactionBatch[] memory batches = new TransactionBatch[](count);
         for (uint256 i = 0; i < count; i++) {
-            bytes32 key = batchKeys.at(offset + i);
-            batches[i] = _transactionBatches[key];
+            uint256 date = batchDates.at(offset + i);
+            batches[i] = _transactionBatches[deviceIdKey][date];
         }
         
         return batches;
@@ -1004,7 +1005,7 @@ contract ShareXVault is
             partnersCount: _partnerKeys.length(),
             merchantsCount: _merchantKeys.length(),
             devicesCount: _deviceKeys.length(),
-            transactionBatchesCount: _transactionBatchKeys.length(),
+            transactionBatchesCount: _transactionBatchIdCounter,
             countriesCount: _countryKeys.length(),
             contractBalance: address(this).balance
         });
@@ -1059,8 +1060,8 @@ contract ShareXVault is
         onlyRole(READER_ROLE) 
         returns (uint256) 
     {
-        bytes32 partnerKey = bytes32(bytes(partnerCode));
-        return _merchantsByPartner[partnerKey].length();
+        bytes32 partnerCodeKey = bytes32(bytes(partnerCode));
+        return _merchantsByPartner[partnerCodeKey].length();
     }
     
     /**
@@ -1072,8 +1073,8 @@ contract ShareXVault is
         onlyRole(READER_ROLE)
         returns (MerchantInfo[] memory)
     {
-        bytes32 partnerKey = bytes32(bytes(partnerCode));
-        EnumerableSet.Bytes32Set storage merchantKeys = _merchantsByPartner[partnerKey];
+        bytes32 partnerCodeKey = bytes32(bytes(partnerCode));
+        EnumerableSet.Bytes32Set storage merchantKeys = _merchantsByPartner[partnerCodeKey];
         uint256 length = merchantKeys.length();
 
         if (offset >= length) {
@@ -1094,7 +1095,7 @@ contract ShareXVault is
      * @dev Gets a transaction summary.
      */
     function getTransactionSummary(
-        string calldata deviceHash,
+        string calldata deviceId,
         uint256 startDate,
         uint256 endDate
     )
@@ -1103,18 +1104,18 @@ contract ShareXVault is
         onlyRole(READER_ROLE)
         returns (uint256 totalBatches, uint256 totalOrders, uint256 totalAmount)
     {
-        bytes32 deviceKey = bytes32(bytes(deviceHash));
-        EnumerableSet.Bytes32Set storage batchKeys = _transactionsByDevice[deviceKey];
+        bytes32 deviceIdKey = bytes32(bytes(deviceId));
+        EnumerableSet.UintSet storage batchDates = _transactionsByDevice[deviceIdKey];
         
         if (startDate > endDate) {
             revert StartDateAfterEndDate();
         }
         
-        for (uint256 i = 0; i < batchKeys.length(); i++) {
-            bytes32 key = batchKeys.at(i);
-            TransactionBatch storage batch = _transactionBatches[key];
+        for (uint256 i = 0; i < batchDates.length(); i++) {
+            uint256 date = batchDates.at(i);
             
-            if (batch.basicInfo.dateComparable >= startDate && batch.basicInfo.dateComparable <= endDate) {
+            if (date >= startDate && date <= endDate) {
+                TransactionBatch storage batch = _transactionBatches[deviceIdKey][date];
                 totalBatches++;
                 totalOrders += batch.basicInfo.orderCount;
                 totalAmount += batch.basicInfo.totalAmount;
