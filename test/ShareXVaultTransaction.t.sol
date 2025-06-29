@@ -159,10 +159,6 @@ contract ShareXVaultTransactionTest is Test {
         vault.uploadTransactionBatch(params);
     }
 
-    // ================================================================
-    // Internal Helper Functions
-    // ================================================================
-
     function _registerTestPartner() internal {
         PartnerParams memory partnerParams = PartnerParams({
             partnerCode: "PARTNER001",

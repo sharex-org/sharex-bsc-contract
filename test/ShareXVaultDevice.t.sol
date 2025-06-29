@@ -237,10 +237,6 @@ contract ShareXVaultDeviceTest is Test {
         assertFalse(vault.deviceExists(keccak256("NONEXISTENT")));
     }
 
-    // ================================================================
-    // Internal Helper Functions
-    // ================================================================
-
     function _registerTestPartner() internal {
         PartnerParams memory partnerParams = PartnerParams({
             partnerCode: "PARTNER001",

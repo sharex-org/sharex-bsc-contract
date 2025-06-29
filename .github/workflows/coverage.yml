@@ -19,7 +19,7 @@ jobs:
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
       - name: "Generate the coverage report using the unit and the integration tests"
-        run: forge coverage --report lcov
+        run: forge coverage --report lcov --ir-minimum
       - name: "Install lcov"
         run: sudo apt-get update && sudo apt-get install lcov
       - name: "Remove unwanted files"

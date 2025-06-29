@@ -1,0 +1,4 @@
+[codespell]
+skip = .git,docs,package-lock.json,yarn.lock,node_modules
+ignore-words-list = amountIn,amountin
+check-filenames = true
