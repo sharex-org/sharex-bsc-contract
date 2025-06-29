@@ -3,6 +3,7 @@
 pragma solidity 0.8.24;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -56,7 +57,7 @@ import {
  * @notice Handles partner, merchant, device registration and transaction processing
  * @custom:security-contact security@sharex.com
  */
-contract ShareXVault is AccessControl, Pausable, ReentrancyGuard, IShareXVault {
+contract ShareXVault is Initializable, AccessControl, Pausable, ReentrancyGuard, IShareXVault {
     // Constants
     /// @dev Role identifier for operators who can register entities and upload transactions
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
@@ -114,19 +115,42 @@ contract ShareXVault is AccessControl, Pausable, ReentrancyGuard, IShareXVault {
     mapping(bytes2 iso2 => CountryInfo country) private _countries;
 
     /**
-     * @dev Initializes the ShareX Vault contract
-     * @param admin Address that will be granted admin and operator roles
+     * @dev Constructor that disables initializers to prevent implementation initialization
+     * @param admin Address that will be granted admin and operator roles for implementation
      */
     constructor(address admin) {
         if (admin == address(0)) {
             revert InvalidAdminAddress();
         }
 
-        // Grant roles to admin
+        // Setup roles for implementation (not used when deployed behind proxy)
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(OPERATOR_ROLE, admin);
 
-        // Initialize system state
+        // Initialize system state for implementation
+        _systemState.version = Version({major: 1, minor: 0, patch: 0});
+        _systemState.maintenanceMode = false;
+
+        emit ContractInitialized(admin, _systemState.version, block.timestamp);
+
+        // Disable initializers for the implementation contract
+        _disableInitializers();
+    }
+
+    /**
+     * @dev Initialize the ShareX Vault proxy
+     * @param admin Address that will be granted admin and operator roles
+     */
+    function initialize(address admin) external initializer {
+        if (admin == address(0)) {
+            revert InvalidAdminAddress();
+        }
+
+        // Setup roles for proxy
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(OPERATOR_ROLE, admin);
+
+        // Initialize system state for proxy
         _systemState.version = Version({major: 1, minor: 0, patch: 0});
         _systemState.maintenanceMode = false;
 

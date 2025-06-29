@@ -36,11 +36,11 @@ The documentation includes:
 
 | Contract                 | Address                                      | BSCScan                                                                                | Type           | Description                       |
 | ------------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------- | -------------- | --------------------------------- |
-| **ShareXVault**          | `0x1cFCA2622d2e2172e1794b3e33ca73AF28B5Ef37` | [View](https://testnet.bscscan.com/address/0x1cFCA2622d2e2172e1794b3e33ca73AF28B5Ef37) | Implementation | Main PayFi vault logic contract   |
-| **ShareXVaultProxy**     | `0x7B379FFBb02e3a34e120cf6bd9D9267355f3F6Ba` | [View](https://testnet.bscscan.com/address/0x7B379FFBb02e3a34e120cf6bd9D9267355f3F6Ba) | Proxy          | Upgradeable proxy for ShareXVault |
-| **YieldVault**           | `0x33a81376a44aEF6CdA2B9aC2f2F800Fff317370a` | [View](https://testnet.bscscan.com/address/0x33a81376a44aEF6CdA2B9aC2f2F800Fff317370a) | Implementation | Yield generation vault logic      |
-| **YieldVaultProxy**      | `0x727E066dF73D0E93D5F2B0d1c700FFE3386D9126` | [View](https://testnet.bscscan.com/address/0x727E066dF73D0E93D5F2B0d1c700FFE3386D9126) | Proxy          | Upgradeable proxy for YieldVault  |
-| **PancakeSwapV3Adapter** | `0xd94D8f5B1b822Fdf25bC9Cd1Fc4991C41180fb79` | [View](https://testnet.bscscan.com/address/0xd94D8f5B1b822Fdf25bC9Cd1Fc4991C41180fb79) | Adapter        | DeFi adapter for PancakeSwap V3   |
+| **ShareXVault**          | `0xB5Ae51A7b0A4654147561F7b9e94E875514e3C0A` | [View](https://testnet.bscscan.com/address/0xB5Ae51A7b0A4654147561F7b9e94E875514e3C0A) | Implementation | Main PayFi vault logic contract   |
+| **ShareXVaultProxy**     | `0xb8607B8Bb9Bd25837147667C3bCfFde08A457BE1` | [View](https://testnet.bscscan.com/address/0xb8607B8Bb9Bd25837147667C3bCfFde08A457BE1) | Proxy          | Upgradeable proxy for ShareXVault |
+| **YieldVault**           | `0xd9F886Ca7264eD40D01421f5f54218aaeBeC91ef` | [View](https://testnet.bscscan.com/address/0xd9F886Ca7264eD40D01421f5f54218aaeBeC91ef) | Implementation | Yield generation vault logic      |
+| **YieldVaultProxy**      | `0x37118bF6979486cC6F4BE45d26d3Cdac42685baD` | [View](https://testnet.bscscan.com/address/0x37118bF6979486cC6F4BE45d26d3Cdac42685baD) | Proxy          | Upgradeable proxy for YieldVault  |
+| **PancakeSwapV3Adapter** | `0x50bDD9459dd66a42f2020A5E2aFDf357Fe88A6D2` | [View](https://testnet.bscscan.com/address/0x50bDD9459dd66a42f2020A5E2aFDf357Fe88A6D2) | Adapter        | DeFi adapter for PancakeSwap V3   |
 
 ## 🏗️ Architecture Overview
 

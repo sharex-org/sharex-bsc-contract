@@ -99,10 +99,12 @@ contract Deploy is Deployer {
     function deployShareXVaultProxy() public returns (address addr) {
         address logic = mustGetAddress("ShareXVault");
 
+        bytes memory initData = abi.encodeWithSignature("initialize(address)", _cfg.vaultAdmin());
+
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy({
             _logic: logic,
             initialOwner: _cfg.proxyAdminOwner(),
-            _data: ""
+            _data: initData
         });
 
         save("ShareXVaultProxy", address(proxy));
@@ -114,7 +116,6 @@ contract Deploy is Deployer {
     function deployYieldVaultProxy() public returns (address addr) {
         address logic = mustGetAddress("YieldVault");
 
-        // Prepare initialization data for YieldVault
         bytes memory initData = abi.encodeWithSignature(
             "initialize(address,address)", _cfg.usdtToken(), _cfg.yieldVaultAdmin()
         );
@@ -132,8 +133,10 @@ contract Deploy is Deployer {
     }
 
     function initializeShareXVault() public view {
-        // No initialization needed - constructor handles setup
-        console.log("ShareXVault deployment completed - no initialization needed");
+        // Initialization handled during proxy deployment
+        console.log(
+            "ShareXVault deployment completed - initialization handled during proxy deployment"
+        );
     }
 
     function initializePayFiEcosystem() public {
