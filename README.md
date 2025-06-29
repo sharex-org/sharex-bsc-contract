@@ -1,235 +1,270 @@
-# ShareX DeFi Yield Vault
+# ShareX PayFi Solution
 
-A professional, extensible DeFi yield aggregation system built on Solidity 0.8.24 with a clean, modular architecture designed for easy integration of multiple DeFi protocols.
+[![Tests](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/test.yml/badge.svg)](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/test.yml)
+[![Coverage](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/coverage.yml/badge.svg)](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/coverage.yml)
+[![Security Checks](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/checks.yml/badge.svg)](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/checks.yml)
+[![Docs](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/docs.yml/badge.svg)](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/docs.yml)
+[![codecov](https://codecov.io/gh/sharex-org/sharex-bsc-contract/graph/badge.svg)](https://codecov.io/gh/sharex-org/sharex-bsc-contract)
+
+A comprehensive blockchain-based payment infrastructure solution built on Solidity 0.8.24, providing secure, upgradeable smart contracts for managing partner ecosystems, merchant onboarding, device management, and transaction processing in a unified PayFi platform.
 
 ## 🏗️ Architecture Overview
 
-The system is designed with clear separation of concerns:
+The ShareX PayFi Solution is built with a secure, upgradeable proxy architecture:
 
 ```text
-├── YieldVault.sol              # Main vault for DeFi yield generation
-├── ShareXVault.sol             # Business transaction processing
-├── adapters/                   # DeFi protocol integrations
-│   ├── BaseAdapter.sol         # Abstract base for all adapters
-│   └── PancakeSwapV3Adapter.sol # PancakeSwap V3 LP + MasterChef farming
-├── interfaces/                 # Clean interface definitions
-│   ├── IYieldVault.sol         # Main vault interface
-│   ├── IShareXVault.sol        # Business vault interface
-│   ├── IAdapter.sol            # Base adapter interface
-│   ├── ILiquidityAdapter.sol   # Liquidity-specific adapter interface
-│   └── IPancakeSwapV3.sol      # PancakeSwap V3 protocol interfaces
-└── libraries/                  # Shared utilities and constants
-    ├── Constants.sol           # System-wide constants and roles
-    ├── DataTypes.sol           # Common data structures
-    ├── Errors.sol              # Custom error definitions
-    └── Events.sol              # Event definitions
+├── ShareXVault.sol             # Main upgradeable vault contract
+├── interfaces/                 # Interface definitions
+│   └── IShareXVault.sol        # Main vault interface
+├── libraries/                  # Shared utilities
+│   ├── DataTypes.sol           # Data structures for PayFi entities
+│   ├── Errors.sol              # Custom error definitions
+│   └── Events.sol              # Event definitions for tracking
+├── script/                     # Deployment and upgrade scripts
+│   └── Deploy.s.sol            # Foundry deployment script
+└── deploy-config/              # Network-specific configurations
+    ├── local.json              # Local development config
+    ├── bsc-testnet.json        # BSC Testnet config
+    └── devnet.json             # Development network config
 ```
 
 ## 🚀 Key Features
 
-### Multi-Adapter Architecture
-- **Extensible Design**: Easy to add new DeFi protocols
-- **Risk Diversification**: Automatic distribution across multiple strategies
-- **Weight-Based Allocation**: Configurable investment distribution
-- **Emergency Controls**: Individual adapter pause/emergency exit
+### Upgradeable Proxy Architecture
+- **TransparentUpgradeableProxy**: Secure upgrade mechanism with role separation
+- **Proxy Admin Owner**: Controls proxy upgrades and admin functions
+- **Vault Admin**: Controls business logic and operational functions
+- **Implementation Contracts**: Upgradeable business logic layer
 
-### Yield Vault Features
-- **Auto-Investment**: Configurable automatic fund deployment
-- **Reward Harvesting**: Automated yield collection across adapters
-- **Rebalancing**: Dynamic reallocation based on performance
-- **Share-Based Accounting**: Fair distribution of rewards
+### Partner Ecosystem Management
+- **Partner Registration**: Complete partner onboarding with verification
+- **Partner Profiles**: Business type, country, and verification tracking
+- **Batch Operations**: Efficient bulk partner management
+- **Partner Analytics**: Comprehensive tracking and reporting
 
-### Business Transaction Vault (ShareX)
-- **Partner & Merchant Management**: Complete entity registration system
-- **Device Registration**: POS and payment device tracking
-- **Transaction Processing**: Batch upload and processing capabilities
-- **Country & Location Support**: Geographic data management
-- **Access Control**: Role-based permissions for operations
+### Merchant Management System
+- **Merchant Onboarding**: Streamlined merchant registration process
+- **Location Management**: Geographic and location-based organization
+- **Merchant Types**: Support for various business categories
+- **Verification System**: Built-in verification and compliance tracking
+
+### Device & Payment Infrastructure
+- **Device Registration**: POS and payment device management
+- **Device Types**: Support for multiple device categories
+- **Device Status Tracking**: Active/inactive device monitoring
+- **Batch Device Operations**: Efficient device management at scale
+
+### Transaction Processing Engine
+- **Batch Transaction Processing**: High-throughput transaction handling
+- **Transaction Validation**: Comprehensive data validation and verification
+- **Event-Driven Architecture**: Real-time transaction tracking and analytics
+- **Data Integrity**: Immutable transaction records on blockchain
 
 ### Security & Access Control
-- **Role-Based Permissions**: Granular access control
-- **Emergency Pausing**: System-wide safety measures
-- **Reentrancy Protection**: Comprehensive attack prevention
-- **Input Validation**: Robust parameter checking
+- **Role-Based Access Control**: Granular permission system with multiple roles
+- **Emergency Pausing**: System-wide safety measures for critical situations
+- **Reentrancy Protection**: Comprehensive attack prevention mechanisms
+- **Input Validation**: Robust parameter checking and data sanitization
+- **Upgrade Security**: Secure contract upgrade procedures with proper authorization
 
-## 📋 Supported Protocols
+## 🔧 Core Data Structures
 
-### Currently Integrated
-- **PancakeSwap V3**: Fully functional concentrated liquidity provision with active position management, automated CAKE farming via MasterChef V3, and comprehensive fee collection
+### Partner Management
+- **Partner Registration**: Comprehensive partner onboarding with verification codes
+- **Business Classification**: Support for various business types and categories
+- **Geographic Coverage**: Country-specific partner management with ISO2 codes
+- **Verification System**: Built-in compliance and verification tracking
 
-### Easy to Add
-- **Uniswap V3**: Similar concentrated liquidity model
-- **Compound**: Lending protocol integration
-- **Aave**: Multi-asset lending and borrowing
-- **Venus**: BSC-based lending protocol
-- **Beefy Finance**: Yield optimization strategies
+### Merchant Infrastructure
+- **Merchant Profiles**: Complete merchant information and categorization
+- **Location Management**: Geographic organization with location IDs and descriptions
+- **Merchant Types**: Flexible categorization system for different business models
+- **Status Tracking**: Active merchant monitoring and management
+
+### Device Ecosystem
+- **Device Registration**: Comprehensive device onboarding and management
+- **Device Categories**: Support for POS terminals, mobile devices, and payment hardware
+- **Status Management**: Real-time device status tracking and monitoring
+- **Batch Operations**: Efficient bulk device management capabilities
+
+### Transaction Processing
+- **Batch Processing**: High-throughput transaction handling and validation
+- **Data Validation**: Comprehensive transaction data verification
+- **Immutable Records**: Blockchain-based transaction history and audit trails
+- **Event Tracking**: Real-time transaction monitoring and analytics
 
 ## 🔧 Usage Examples
 
-### Basic Yield Vault Usage
+### ShareX PayFi Platform Integration
 
 ```solidity
-// Deploy vault
-YieldVault vault = new YieldVault(USDT_ADDRESS, admin);
+// Deploy ShareX vault with proxy
+ShareXVault vault = ShareXVault(proxyAddress);
 
-// Add DeFi adapters with weights
-vault.addAdapter(pancakeSwapAdapter, 4000); // 40% weight
-vault.addAdapter(compoundAdapter, 6000);    // 60% weight
-
-// User deposits with auto-investment
-IERC20(USDT).approve(address(vault), 1000e6);
-uint256 shares = vault.deposit(1000e6, true);
-
-// Harvest rewards across all adapters
-uint256 rewards = vault.harvestAllRewards();
-
-// Withdraw funds
-uint256 amount = vault.withdraw(shares);
-```
-
-### ShareX Business Vault Usage
-
-```solidity
-// Deploy ShareX vault
-ShareXVault vault = new ShareXVault(admin);
-
-// Register a partner
+// Register a payment partner
 PartnerParams memory partner = PartnerParams({
-    partnerCode: "PARTNER001",
-    partnerName: "Test Partner",
+    partnerCode: "PAYFI001",
+    partnerName: "PayFi Solutions Inc",
     iso2: "US",
-    verification: "VER123",
-    description: "Test Description",
-    businessType: "Retail"
+    verification: "KYB12345",
+    description: "Digital payment infrastructure provider",
+    businessType: "Fintech"
 });
 vault.registerPartner(partner);
 
-// Register a merchant
+// Register merchants under the partner
 MerchantParams memory merchant = MerchantParams({
-    merchantName: "Test Merchant",
-    merchantId: "MERCHANT001",
-    description: "Test merchant",
+    merchantName: "Coffee Shop Downtown",
+    merchantId: "MERCHANT_CS001",
+    description: "Coffee and pastry retail shop",
     iso2: "US",
-    locationId: "NYC001",
-    location: "New York City",
-    merchantType: "Retail",
-    verification: "VER123"
+    locationId: "NYC_DOWNTOWN_001",
+    location: "123 Main St, New York, NY",
+    merchantType: "Retail_Food",
+    verification: "MER_VER_001"
 });
 vault.registerMerchant(merchant);
+
+// Register payment devices
+DeviceParams memory device = DeviceParams({
+    deviceId: "POS_TERMINAL_001",
+    deviceType: "POS_Terminal",
+    merchantId: "MERCHANT_CS001",
+    description: "Main counter POS terminal",
+    status: "Active"
+});
+vault.registerDevice(device);
 ```
 
-### Adding a New Adapter
+### Batch Operations for Scale
 
 ```solidity
-contract MyProtocolAdapter is BaseAdapter {
-    constructor(address asset, address admin)
-        BaseAdapter(asset, admin) {}
+// Batch register multiple countries
+CountryParams[] memory countries = new CountryParams[](3);
+countries[0] = CountryParams("US", "United States", "USD");
+countries[1] = CountryParams("CA", "Canada", "CAD");
+countries[2] = CountryParams("GB", "United Kingdom", "GBP");
+vault.batchRegisterCountries(countries);
 
-    function totalAssets() public view override returns (uint256) {
-        // Return total assets under management from protocol
-        return _calculateTotalAssetsFromProtocol();
-    }
+// Batch process transactions
+TransactionBatch memory batch = TransactionBatch({
+    batchId: "BATCH_20240101_001",
+    partnerId: "PAYFI001",
+    transactionCount: 100,
+    totalAmount: 15000000, // Total amount in smallest currency unit
+    currency: "USD",
+    processedAt: block.timestamp,
+    merchantIds: merchantIdArray,
+    deviceIds: deviceIdArray,
+    transactionData: encryptedTransactionData
+});
+vault.processBatch(batch);
+```
 
-    function _deposit(uint256 amount)
-        internal override returns (uint256 shares) {
-        // Deploy assets to the protocol (e.g., lend to Compound)
-        _deployToProtocol(amount);
-        return amount; // Return shares (typically 1:1 for lending protocols)
-    }
+### Contract Upgrade Process
 
-    function _withdraw(uint256 shares)
-        internal override returns (uint256 amount) {
-        // Withdraw from protocol (e.g., redeem from Compound)
-        amount = _withdrawFromProtocol(shares);
-        return amount;
-    }
+```solidity
+// Deploy new implementation
+ShareXVault newImplementation = new ShareXVault();
 
-    function _harvest()
-        internal override returns (uint256 rewardAmount) {
-        // Claim protocol rewards (e.g., COMP tokens)
-        rewardAmount = _claimProtocolRewards();
-        return rewardAmount;
-    }
+// Upgrade proxy (only proxy admin can execute)
+ITransparentUpgradeableProxy(proxyAddress).upgradeToAndCall(
+    address(newImplementation),
+    abi.encodeWithSignature("initializeV2()")
+);
 
-    function getAdapterInfo()
-        external pure override
-        returns (string memory, string memory, uint8) {
-        return ("MyProtocol", "Lending", 2);
-    }
-}
+// Verify upgrade success
+require(
+    ShareXVault(proxyAddress).getVersion() > previousVersion,
+    "Upgrade failed"
+);
 ```
 
 ## 🧪 Testing
 
-The project includes comprehensive test suites with a clean, focused structure:
+The ShareX PayFi Solution includes comprehensive test suites covering all contract functionality:
 
 ```bash
-# Run all tests
-forge test
+# Run all tests with optimization
+make foundry-test
 
-# Run specific test file
-forge test --match-path test/YieldVault.t.sol
+# Run specific test contracts
+forge test --match-contract ShareXVault -vvv
 
 # Run with gas reporting
 forge test --gas-report
 
-# Run with coverage
+# Generate coverage reports
 forge coverage
 ```
 
 ### Test Structure
 ```text
 test/
-├── YieldVault.t.sol                 # Core yield vault functionality (27 tests)
-├── MockAdapter.t.sol                # Adapter testing framework (24 tests)
-├── ShareXVault.t.sol                # Core ShareX vault tests (15 tests)
+├── ShareXVault.t.sol                # Core vault functionality tests (15 tests)
 ├── ShareXVaultPartner.t.sol         # Partner management tests (7 tests)
 ├── ShareXVaultMerchant.t.sol        # Merchant management tests (10 tests)
 ├── ShareXVaultDevice.t.sol          # Device management tests (11 tests)
 ├── ShareXVaultCountry.t.sol         # Country registration tests (13 tests)
-└── ShareXVaultTransaction.t.sol     # Transaction processing tests (5 tests)
+├── ShareXVaultTransaction.t.sol     # Transaction processing tests (5 tests)
+└── foundry/                         # Foundry-specific test utilities
+    └── ShareXVaultFoundry.t.sol     # Foundry integration tests
 ```
 
 ### Test Categories
-- **Unit Tests**: Individual contract functionality
-- **Integration Tests**: Multi-contract interactions
-- **Edge Case Testing**: Boundary condition validation
-- **Access Control Tests**: Permission and security validation
+- **Unit Tests**: Individual contract function validation
+- **Integration Tests**: Multi-component interaction testing
+- **Access Control Tests**: Role-based permission validation
+- **Upgrade Tests**: Proxy upgrade mechanism verification
+- **Edge Case Testing**: Boundary condition and error handling
+- **Gas Optimization Tests**: Performance and efficiency validation
 
-**Total: 112 tests** providing comprehensive coverage of all functionality.
+**Total: 61 tests** providing comprehensive coverage of the PayFi platform functionality.
 
 ## 🔒 Security Considerations
 
-### Access Control
-- `DEFAULT_ADMIN_ROLE`: Complete system control
-- `DEFI_MANAGER_ROLE`: Adapter and strategy management
-- `OPERATOR_ROLE`: Day-to-day operations (ShareX)
-- `EMERGENCY_ROLE`: Emergency pause and exit functions
+### Access Control Roles
+- `DEFAULT_ADMIN_ROLE`: Complete system administration and role management
+- `UPGRADER_ROLE`: Contract upgrade authorization and implementation
+- `OPERATOR_ROLE`: Day-to-day PayFi operations and transaction processing
+- `EMERGENCY_ROLE`: Emergency pause and critical system functions
+
+### Proxy Security Architecture
+- **TransparentUpgradeableProxy**: Secure upgrade mechanism with admin separation
+- **Proxy Admin Owner**: Isolated proxy upgrade control
+- **Implementation Security**: Storage layout protection and initialization guards
+- **Role Separation**: Clear boundaries between proxy and business logic control
 
 ### Risk Management
-- Maximum adapter weights to prevent over-concentration
-- Emergency pause mechanisms at vault and adapter levels
-- Slippage protection for DEX trades and LP position management
-- Input validation and parameter bounds checking
-- Reentrancy protection on all state-changing functions
-- Real DeFi integration risk mitigation with proper error handling
-- Position management safeguards for concentrated liquidity ranges
+- **Input Validation**: Comprehensive parameter validation and bounds checking
+- **Reentrancy Protection**: SafeReentrancyGuard on all state-changing functions
+- **Emergency Pausing**: System-wide pause capability for critical situations
+- **Data Integrity**: Immutable transaction records and audit trails
+- **Access Control**: Granular role-based permissions with proper inheritance
+- **Counter Management**: Secure incrementing counters for unique ID generation
+- **Batch Processing Security**: Transaction validation and data consistency checks
 
 ## 📊 Performance Metrics
 
 ### Gas Optimization
-- Efficient storage patterns and packed structs
-- Minimal external calls and batch operations
-- Optimized loops and calculations
-- Strategic use of immutable variables
+- **Efficient Data Structures**: Optimized struct packing and storage patterns
+- **Batch Operations**: Reduced transaction costs through bulk processing
+- **Minimal External Calls**: Streamlined contract interactions
+- **Strategic Storage**: Cost-effective state variable management
 
-### Expected APY (Market Dependent)
-- **PancakeSwap V3 USDT/BUSD**: 8-15% APY (trading fees + CAKE rewards)
-- **Conservative Strategy**: 8-12% APY (stable pair liquidity provision)
-- **Balanced Strategy**: 12-18% APY (mixed stable and volatile pairs)
-- **Aggressive Strategy**: 18-25% APY (concentrated ranges on volatile pairs)
+### Scalability Features
+- **High-Throughput Processing**: Efficient batch transaction handling
+- **Optimized Queries**: Fast data retrieval and partner/merchant lookups
+- **Event-Driven Architecture**: Comprehensive event emission for off-chain analytics
+- **Upgradeable Design**: Future-proof architecture for continuous improvements
 
-*Note: APY varies based on market conditions, trading volume, and liquidity incentives. PancakeSwap V3 yields depend on fee tier selection and price range efficiency.*
+### Expected Performance (Network Dependent)
+- **Transaction Processing**: 1000+ transactions per batch
+- **Partner Onboarding**: Sub-second registration with verification
+- **Device Management**: Real-time status updates and monitoring
+- **Query Performance**: Efficient data retrieval across all entity types
+
+*Note: Performance metrics vary based on network congestion, gas prices, and batch sizes. The system is optimized for high-throughput PayFi operations.*
 
 ## 🛠️ Deployment
 
@@ -239,52 +274,121 @@ test/
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
 
-# Install dependencies
+# Clone and setup project
+git clone <repository-url>
+cd sharex-contracts
 forge install
+```
+
+### Build and Test
+```bash
+# Clean and build contracts
+make clean && make build
+
+# Run comprehensive tests
+make foundry-test
+
+# Generate ABI files
+make abi
 ```
 
 ### Local Development
 ```bash
-# Start local node
+# Start local Anvil node
 anvil
 
-# Deploy to local network
-forge script script/Deploy.s.sol --rpc-url http://localhost:8545 --broadcast
+# Deploy to local network (dry run first)
+DEPLOYMENT_CONTEXT=local forge script script/Deploy.s.sol:Deploy --ffi -vvv
+
+# Deploy with broadcast
+DEPLOYMENT_CONTEXT=local forge script script/Deploy.s.sol:Deploy \
+  --rpc-url http://localhost:8545 \
+  --private-key $PRIVATE_KEY \
+  --broadcast --ffi -vvv
 ```
 
-### Testnet Deployment
+### BSC Testnet Deployment
 ```bash
-# Deploy to BSC Testnet
-forge script script/Deploy.s.sol \
-  --rpc-url $BSC_TESTNET_RPC \
-  --broadcast \
-  --verify \
-  --etherscan-api-key $BSCSCAN_API_KEY
+# Set environment variables
+export DEPLOYMENT_CONTEXT="bsc-testnet"
+export RPC_URL="https://data-seed-prebsc-1-s1.binance.org:8545/"
+export PRIVATE_KEY="your_private_key"
+export ETHERSCAN_API_KEY="your_bscscan_api_key"
+
+# Deploy with verification
+forge script script/Deploy.s.sol:Deploy \
+  --chain-id 97 \
+  --rpc-url $RPC_URL \
+  --private-key $PRIVATE_KEY \
+  --verify --etherscan-api-key $ETHERSCAN_API_KEY \
+  --broadcast --ffi -vvv
 ```
 
-### Available Networks
-- **Local**: Anvil development network
-- **BSC Testnet**: Binance Smart Chain testnet with verified PancakeSwap V3 contracts
-- **BSC Mainnet**: Production deployment target with full DeFi ecosystem
+### Supported Networks
+- **Local**: Anvil development network for testing
+- **BSC Testnet**: Binance Smart Chain testnet (Chain ID: 97)
+- **BSC Mainnet**: Production deployment target
+- **Devnet**: Custom development network for staging
+
+### Deployment Artifacts
+- Contract addresses stored in `deployments/[network]/.deploy`
+- Chain ID configuration in `deployments/[network]/.chainId`
+- Network-specific configs in `deploy-config/[network].json`
+
+## 🔄 Contract Upgrades
+
+### Upgrade Architecture
+The ShareX PayFi Solution uses **TransparentUpgradeableProxy** with clear role separation:
+- **Proxy Admin Owner**: Controls proxy upgrades and admin functions
+- **Vault Admin**: Controls business logic and operational functions
+
+### Upgrade Process
+```bash
+# 1. Deploy new implementation
+forge script script/Deploy.s.sol:Deploy --broadcast
+
+# 2. Get contract addresses
+export PROXY_ADDRESS=$(jq -r '.ShareXVaultProxy' deployments/bsc-testnet/.deploy)
+export NEW_IMPL=$(jq -r '.ShareXVault' deployments/bsc-testnet/.deploy)
+
+# 3. Perform upgrade (proxy admin only)
+cast send $PROXY_ADMIN "upgradeToAndCall(address,address,bytes)" \
+  $PROXY_ADDRESS $NEW_IMPL "0x" --rpc-url $RPC_URL --private-key $KEY
+
+# 4. Verify upgrade
+cast call $PROXY_ADDRESS "getVersion()" --rpc-url $RPC_URL
+```
+
+### Upgrade Safety
+- **Storage Layout**: Never modify existing storage variable order
+- **Initialization**: Use separate `initializeV2()` functions for new versions
+- **Testing**: Always test upgrades on testnet first
+- **Multi-sig**: Use multi-signature wallets for production upgrades
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow our development guidelines:
+We welcome contributions to the ShareX PayFi Solution! Please follow our development guidelines:
 
 ### Development Workflow
-1. Fork the repository
-2. Create a feature branch
-3. Write tests for new functionality
-4. Ensure all tests pass (`forge test`)
-5. Follow our coding standards
-6. Submit a pull request
+1. Fork the repository and create a feature branch
+2. Write comprehensive tests for new functionality
+3. Ensure all tests pass (`make foundry-test`)
+4. Follow Solidity coding standards and security best practices
+5. Update documentation and examples as needed
+6. Submit a pull request with detailed description
 
 ### Coding Standards
-- Follow Solidity style guide
-- Write comprehensive tests
-- Use descriptive variable and function names
-- Include NatSpec documentation
-- Maintain security best practices
+- Follow Solidity 0.8.24 best practices
+- Use NatSpec documentation for all public functions
+- Implement proper access control and input validation
+- Write comprehensive unit and integration tests
+- Maintain gas efficiency and optimization
+
+### Security Guidelines
+- Never modify storage layout in upgrades
+- Always validate inputs and check access controls
+- Use established patterns for reentrancy protection
+- Test upgrade scenarios on testnet before mainnet
 
 ## 📄 License
 
@@ -292,4 +396,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⚠️ Disclaimer**: This software is provided as-is without any guarantees. DeFi investments carry risks including but not limited to smart contract vulnerabilities, market volatility, and potential loss of funds. Use at your own risk and only invest what you can afford to lose.
+**⚠️ Disclaimer**: This software is provided as-is for payment infrastructure purposes. While designed with security best practices, users should conduct thorough testing and audits before production deployment. Use at your own risk and ensure compliance with applicable financial regulations.
