@@ -5,6 +5,7 @@ pragma solidity 0.8.24;
 import {ShareXVault} from "../src/ShareXVault.sol";
 import {YieldVault} from "../src/YieldVault.sol";
 import {PancakeSwapV3Adapter} from "../src/adapters/PancakeSwapV3Adapter.sol";
+import {Constants} from "../src/libraries/Constants.sol";
 import {DeployConfig} from "./DeployConfig.s.sol";
 import {Deployer} from "./Deployer.sol";
 import {TransparentUpgradeableProxy} from
@@ -113,10 +114,15 @@ contract Deploy is Deployer {
     function deployYieldVaultProxy() public returns (address addr) {
         address logic = mustGetAddress("YieldVault");
 
+        // Prepare initialization data for YieldVault
+        bytes memory initData = abi.encodeWithSignature(
+            "initialize(address,address)", _cfg.usdtToken(), _cfg.yieldVaultAdmin()
+        );
+
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy({
             _logic: logic,
             initialOwner: _cfg.proxyAdminOwner(),
-            _data: ""
+            _data: initData
         });
 
         save("YieldVaultProxy", address(proxy));
@@ -139,6 +145,10 @@ contract Deploy is Deployer {
 
         // Initialize YieldVault with adapter
         YieldVault vault = YieldVault(yieldVaultProxy);
+
+        // Grant DEFI_MANAGER_ROLE to deployer temporarily to add adapter
+        console.log("Granting DEFI_MANAGER_ROLE to deployer...");
+        vault.grantRole(Constants.DEFI_MANAGER_ROLE, msg.sender);
 
         // Add PancakeSwapV3Adapter to YieldVault with 100% weight (10000 basis points)
         console.log("Adding PancakeSwapV3Adapter to YieldVault...");

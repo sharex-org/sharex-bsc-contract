@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -18,7 +19,7 @@ import {Constants} from "./libraries/Constants.sol";
  * @dev Main vault contract for yield generation through multiple DeFi adapters
  * @notice Manages user deposits and automatically diversifies across DeFi strategies
  */
-contract YieldVault is IYieldVault, AccessControl, Pausable, ReentrancyGuard {
+contract YieldVault is IYieldVault, Initializable, AccessControl, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
@@ -55,7 +56,7 @@ contract YieldVault is IYieldVault, AccessControl, Pausable, ReentrancyGuard {
     // ========== Constructor ==========
 
     /**
-     * @dev Initialize the yield vault
+     * @dev Constructor that disables initializers to prevent implementation initialization
      * @param assetAddress Address of the underlying asset token
      * @param admin Address that will receive admin roles
      */
@@ -65,7 +66,32 @@ contract YieldVault is IYieldVault, AccessControl, Pausable, ReentrancyGuard {
 
         _ASSET = IERC20(assetAddress);
 
-        // Setup roles
+        // Setup roles for implementation (not used when deployed behind proxy)
+        _grantRole(Constants.DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(Constants.DEFI_MANAGER_ROLE, admin);
+        _grantRole(Constants.OPERATOR_ROLE, admin);
+        _grantRole(Constants.EMERGENCY_ROLE, admin);
+
+        // Default configuration
+        investmentRatio = 9000; // 90% investment ratio
+        minInvestmentAmount = Constants.MIN_INVESTMENT_AMOUNT * 10;
+
+        // Disable initializers for the implementation contract
+        _disableInitializers();
+    }
+
+    /**
+     * @dev Initialize the yield vault proxy
+     * @param assetAddress Address of the underlying asset token
+     * @param admin Address that will receive admin roles
+     */
+    function initialize(address assetAddress, address admin) external initializer {
+        require(assetAddress != address(0), "YieldVault: Invalid asset");
+        require(admin != address(0), "YieldVault: Invalid admin");
+
+        // Note: _ASSET is immutable and set in constructor, not here
+
+        // Setup roles for proxy
         _grantRole(Constants.DEFAULT_ADMIN_ROLE, admin);
         _grantRole(Constants.DEFI_MANAGER_ROLE, admin);
         _grantRole(Constants.OPERATOR_ROLE, admin);

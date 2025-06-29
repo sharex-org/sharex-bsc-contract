@@ -30,6 +30,18 @@ The documentation includes:
 - **Integration Examples**: Code samples extracted from contract comments
 - **Deployment Guides**: Based on the deployment scripts and configurations
 
+## 📍 Deployed Contracts
+
+### BSC Testnet (Chain ID: 97)
+
+| Contract                 | Address                                      | BSCScan                                                                                | Type           | Description                       |
+| ------------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------- | -------------- | --------------------------------- |
+| **ShareXVault**          | `0x1cFCA2622d2e2172e1794b3e33ca73AF28B5Ef37` | [View](https://testnet.bscscan.com/address/0x1cFCA2622d2e2172e1794b3e33ca73AF28B5Ef37) | Implementation | Main PayFi vault logic contract   |
+| **ShareXVaultProxy**     | `0x7B379FFBb02e3a34e120cf6bd9D9267355f3F6Ba` | [View](https://testnet.bscscan.com/address/0x7B379FFBb02e3a34e120cf6bd9D9267355f3F6Ba) | Proxy          | Upgradeable proxy for ShareXVault |
+| **YieldVault**           | `0x33a81376a44aEF6CdA2B9aC2f2F800Fff317370a` | [View](https://testnet.bscscan.com/address/0x33a81376a44aEF6CdA2B9aC2f2F800Fff317370a) | Implementation | Yield generation vault logic      |
+| **YieldVaultProxy**      | `0x727E066dF73D0E93D5F2B0d1c700FFE3386D9126` | [View](https://testnet.bscscan.com/address/0x727E066dF73D0E93D5F2B0d1c700FFE3386D9126) | Proxy          | Upgradeable proxy for YieldVault  |
+| **PancakeSwapV3Adapter** | `0xd94D8f5B1b822Fdf25bC9Cd1Fc4991C41180fb79` | [View](https://testnet.bscscan.com/address/0xd94D8f5B1b822Fdf25bC9Cd1Fc4991C41180fb79) | Adapter        | DeFi adapter for PancakeSwap V3   |
+
 ## 🏗️ Architecture Overview
 
 The ShareX PayFi Solution is built with a secure, upgradeable proxy architecture:
