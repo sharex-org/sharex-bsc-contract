@@ -3,6 +3,8 @@
 pragma solidity 0.8.24;
 
 import {ShareXVault} from "../src/ShareXVault.sol";
+import {YieldVault} from "../src/YieldVault.sol";
+import {PancakeSwapV3Adapter} from "../src/adapters/PancakeSwapV3Adapter.sol";
 import {DeployConfig} from "./DeployConfig.s.sol";
 import {Deployer} from "./Deployer.sol";
 import {TransparentUpgradeableProxy} from
@@ -45,16 +47,20 @@ contract Deploy is Deployer {
     /// @notice Deploy all of the logic contracts
     function deployImplementations() public broadcast {
         deployShareXVault();
+        deployYieldVault();
+        deployPancakeSwapV3Adapter();
     }
 
     /// @notice Deploy all of the proxies
     function deployProxies() public broadcast {
         deployShareXVaultProxy();
+        deployYieldVaultProxy();
     }
 
     /// @notice Initialize all contracts
     function initializeContracts() public broadcast {
         initializeShareXVault();
+        initializePayFiEcosystem();
     }
 
     function deployShareXVault() public returns (address addr) {
@@ -65,6 +71,28 @@ contract Deploy is Deployer {
         save("ShareXVault", address(vault));
         console.log("ShareXVault deployed at %s", address(vault));
         addr = address(vault);
+    }
+
+    function deployYieldVault() public returns (address addr) {
+        console.log("Deploying YieldVault.sol");
+        address assetAddress = _cfg.usdtToken();
+        address admin = _cfg.yieldVaultAdmin();
+        YieldVault yieldVault = new YieldVault(assetAddress, admin);
+
+        save("YieldVault", address(yieldVault));
+        console.log("YieldVault deployed at %s", address(yieldVault));
+        addr = address(yieldVault);
+    }
+
+    function deployPancakeSwapV3Adapter() public returns (address addr) {
+        console.log("Deploying PancakeSwapV3Adapter.sol");
+        address admin = _cfg.defiManager();
+        uint24 poolFee = _cfg.poolFee();
+        PancakeSwapV3Adapter adapter = new PancakeSwapV3Adapter(admin, poolFee);
+
+        save("PancakeSwapV3Adapter", address(adapter));
+        console.log("PancakeSwapV3Adapter deployed at %s", address(adapter));
+        addr = address(adapter);
     }
 
     function deployShareXVaultProxy() public returns (address addr) {
@@ -82,8 +110,42 @@ contract Deploy is Deployer {
         addr = address(proxy);
     }
 
+    function deployYieldVaultProxy() public returns (address addr) {
+        address logic = mustGetAddress("YieldVault");
+
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy({
+            _logic: logic,
+            initialOwner: _cfg.proxyAdminOwner(),
+            _data: ""
+        });
+
+        save("YieldVaultProxy", address(proxy));
+        console.log("YieldVaultProxy deployed at %s", address(proxy));
+        console.log("Proxy admin owner: %s", _cfg.proxyAdminOwner());
+        addr = address(proxy);
+    }
+
     function initializeShareXVault() public view {
         // No initialization needed - constructor handles setup
         console.log("ShareXVault deployment completed - no initialization needed");
+    }
+
+    function initializePayFiEcosystem() public {
+        console.log("Initializing PayFi ecosystem...");
+
+        // Get deployed contract addresses
+        address yieldVaultProxy = mustGetAddress("YieldVaultProxy");
+        address pancakeAdapter = mustGetAddress("PancakeSwapV3Adapter");
+
+        // Initialize YieldVault with adapter
+        YieldVault vault = YieldVault(yieldVaultProxy);
+
+        // Add PancakeSwapV3Adapter to YieldVault with 100% weight (10000 basis points)
+        console.log("Adding PancakeSwapV3Adapter to YieldVault...");
+        vault.addAdapter(pancakeAdapter, 10000);
+
+        console.log("PayFi ecosystem initialization completed");
+        console.log("YieldVault: %s", yieldVaultProxy);
+        console.log("PancakeSwapV3Adapter: %s", pancakeAdapter);
     }
 }

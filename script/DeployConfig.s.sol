@@ -15,6 +15,12 @@ contract DeployConfig is Script {
     address public proxyAdminOwner;
     address public vaultAdmin;
 
+    // PayFi configuration
+    address public yieldVaultAdmin;
+    address public usdtToken;
+    uint24 public poolFee;
+    address public defiManager;
+
     constructor(string memory _path) {
         console.log("DeployConfig: reading file %s", _path);
         try vm.readFile(_path) returns (string memory data) {
@@ -28,5 +34,11 @@ contract DeployConfig is Script {
 
         proxyAdminOwner = stdJson.readAddress(_json, "$.proxyAdminOwner");
         vaultAdmin = stdJson.readAddress(_json, "$.vaultAdmin");
+
+        // PayFi configuration
+        yieldVaultAdmin = stdJson.readAddress(_json, "$.yieldVaultAdmin");
+        usdtToken = stdJson.readAddress(_json, "$.usdtToken");
+        poolFee = uint24(stdJson.readUint(_json, "$.poolFee"));
+        defiManager = stdJson.readAddress(_json, "$.defiManager");
     }
 }
