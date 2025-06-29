@@ -4,9 +4,31 @@
 [![Coverage](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/coverage.yml/badge.svg)](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/coverage.yml)
 [![Security Checks](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/checks.yml/badge.svg)](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/checks.yml)
 [![Docs](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/docs.yml/badge.svg)](https://github.com/sharex-org/sharex-bsc-contract/actions/workflows/docs.yml)
-[![codecov](https://codecov.io/gh/sharex-org/sharex-bsc-contract/graph/badge.svg)](https://codecov.io/gh/sharex-org/sharex-bsc-contract)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sharex-org/sharex-bsc-contract)
 
 A comprehensive blockchain-based payment infrastructure solution built on Solidity 0.8.24, providing secure, upgradeable smart contracts for managing partner ecosystems, merchant onboarding, device management, and transaction processing in a unified PayFi platform.
+
+## 📚 Documentation
+
+**📖 [Auto-Generated Contract Documentation](https://sharex-org.github.io/sharex-bsc-contract/)** - Complete API documentation auto-generated from NatSpec comments using Foundry's `forge doc` command. Includes detailed contract interfaces, function signatures, parameter descriptions, and usage examples extracted directly from the source code.
+
+### Generate Documentation Locally
+```bash
+# Generate documentation from NatSpec comments
+forge doc
+
+# Serve documentation locally
+forge doc --serve --port 3000
+
+# Build documentation for deployment
+forge doc --build
+```
+
+The documentation includes:
+- **Contract APIs**: Auto-generated from NatSpec comments in source code
+- **Function Signatures**: Complete interface documentation with parameters and return values
+- **Integration Examples**: Code samples extracted from contract comments
+- **Deployment Guides**: Based on the deployment scripts and configurations
 
 ## 🏗️ Architecture Overview
 
